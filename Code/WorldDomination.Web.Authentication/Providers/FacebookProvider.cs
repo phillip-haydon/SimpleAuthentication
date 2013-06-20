@@ -13,19 +13,13 @@ namespace WorldDomination.Web.Authentication.Providers
     public class FacebookProvider : BaseProvider, IAuthenticationProvider
     {
         private const string BaseUrl = "https://graph.facebook.com";
-        private readonly string _clientId;
-        private readonly string _clientSecret;
-        private readonly IList<string> _scope;
 
-        public FacebookProvider(ProviderParams providerParams)
+        protected override string ScopeKey { get { return "&scope="; }}
+        protected override string DefaultScope { get { return "email"; } }
+        protected override string ScopeSeparator { get { return ","; }}
+
+        public FacebookProvider(ProviderParams providerParams) : base (providerParams)
         {
-            providerParams.Validate();
-
-            _clientId = providerParams.Key;
-            _clientSecret = providerParams.Secret;
-
-            // Optionals.
-            _scope = providerParams.Scope ?? new [] {"email"};
         }
 
         private static string RetrieveAuthorizationCode(NameValueCollection queryStringParameters, string existingState = null)
@@ -83,8 +77,8 @@ namespace WorldDomination.Web.Authentication.Providers
             try
             {
                 var restRequest = new RestRequest("oauth/access_token");
-                restRequest.AddParameter("client_id", _clientId);
-                restRequest.AddParameter("client_secret", _clientSecret);
+                restRequest.AddParameter("client_id", ClientKey);
+                restRequest.AddParameter("client_secret", ClientSecret);
                 restRequest.AddParameter("code", code);
                 restRequest.AddParameter("redirect_uri", redirectUri.AbsoluteUri);
 
@@ -200,9 +194,7 @@ namespace WorldDomination.Web.Authentication.Providers
             var baseUri = facebookAuthenticationSettings.IsMobile
                               ? "https://m.facebook.com"
                               : "https://www.facebook.com";
-            var scope = (_scope != null && _scope.Count > 0)
-                            ? "&scope=" + string.Join(",", _scope)
-                            : string.Empty;
+            var scope = GetScope();
             var state = !string.IsNullOrEmpty(facebookAuthenticationSettings.State)
                             ? "&state=" + facebookAuthenticationSettings.State
                             : string.Empty;
@@ -214,7 +206,7 @@ namespace WorldDomination.Web.Authentication.Providers
             // NOTE: Facebook is case-sensitive anal retentive with regards to their uri + querystring params.
             //       So ... we'll lowercase the entire biatch. Thanks, Facebook :(
             var oauthDialogUri = string.Format("{0}/dialog/oauth?client_id={1}{2}{3}{4}&redirect_uri={5}",
-                                               baseUri, _clientId, state, scope, display, 
+                                               baseUri, ClientKey, state, scope, display, 
                                                authenticationServiceSettings.CallBackUri.AbsoluteUri);
 
             return new Uri(oauthDialogUri);

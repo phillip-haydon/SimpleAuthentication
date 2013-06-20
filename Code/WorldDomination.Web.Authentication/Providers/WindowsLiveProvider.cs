@@ -15,17 +15,12 @@ namespace WorldDomination.Web.Authentication.Providers
         private const string RedirectUrl =
             "https://login.live.com/oauth20_authorize.srf?client_id={0}&scope={2}&response_type=code&redirect_uri={1}";
 
-        private readonly string _clientId;
-        private readonly string _clientSecret;
+        protected override string ScopeKey { get { return ""; } }
+        protected override string ScopeSeparator { get { return " "; }}
+        protected override string DefaultScope { get { return "wl.signin wl.basic wl.emails"; }}
 
-        private readonly string _scope = string.Join(" ", new[] {"wl.signin", "wl.basic", "wl.emails"});
-
-        public WindowsLiveProvider(ProviderParams providerParams)
+        public WindowsLiveProvider(ProviderParams providerParams) : base(providerParams)
         {
-            providerParams.Validate();
-
-            _clientId = providerParams.Key;
-            _clientSecret = providerParams.Secret;
         }
 
         private AuthenticatedToken RetrieveToken(NameValueCollection queryStringParameters, Uri redirectUri)
@@ -44,9 +39,9 @@ namespace WorldDomination.Web.Authentication.Providers
             var request = new RestRequest("/oauth20_token.srf");
             var client = RestClientFactory.CreateRestClient("https://login.live.com/oauth20_token.srf");
 
-            request.AddParameter("client_id", _clientId);
+            request.AddParameter("client_id", ClientKey);
             request.AddParameter("redirect_uri", redirectUri);
-            request.AddParameter("client_secret", _clientSecret);
+            request.AddParameter("client_secret", ClientSecret);
             request.AddParameter("code", queryStringParameters["code"]);
             request.AddParameter("grant_type", "authorization_code");
 
@@ -77,7 +72,7 @@ namespace WorldDomination.Web.Authentication.Providers
 
         public Uri RedirectToAuthenticate(IAuthenticationServiceSettings authenticationServiceSettings)
         {
-            var oauthDialogUri = string.Format(RedirectUrl, _clientId, authenticationServiceSettings.CallBackUri.AbsoluteUri, _scope);
+            var oauthDialogUri = string.Format(RedirectUrl, ClientKey, authenticationServiceSettings.CallBackUri.AbsoluteUri, GetScope());
 
             oauthDialogUri += string.IsNullOrEmpty(authenticationServiceSettings.State)
                                   ? string.Empty

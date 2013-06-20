@@ -6,6 +6,7 @@
 
         protected abstract string DefaultScope { get; }
         protected abstract string ScopeSeparator { get; }
+        protected abstract string ScopeKey { get; }
 
         protected string Scope { get; set; }
         protected string ClientKey { get; set; }
@@ -28,6 +29,16 @@
             {
                 Scope = string.Join(ScopeSeparator, providerParams.GetScopes());
             }
+        }
+
+        public string GetScope() 
+        {
+            if (string.IsNullOrWhiteSpace (Scope))
+            {
+                return string.Empty;
+            }
+
+            return ScopeKey + Scope;
         }
     }
 }

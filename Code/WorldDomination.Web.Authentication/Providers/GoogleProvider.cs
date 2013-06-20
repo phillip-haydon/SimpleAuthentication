@@ -182,8 +182,7 @@ namespace WorldDomination.Web.Authentication.Providers
 
             // Do we have any scope options?
             // NOTE: Google uses a space-delimeted string for their scope key.
-            var scope = string.IsNullOrWhiteSpace(Scope) ? "" : string.Format(ScopeKey, Scope);
-
+            var scope = GetScope();
             var state = string.IsNullOrEmpty(authenticationServiceSettings.State)
                             ? string.Empty
                             : "&state=" + authenticationServiceSettings.State;
