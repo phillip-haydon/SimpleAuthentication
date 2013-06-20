@@ -25,7 +25,7 @@ namespace WorldDomination.Web.Authentication.Providers
             _clientSecret = providerParams.Secret;
 
             // Optionals.
-            _scope = new List<string> {"email"};
+            _scope = providerParams.Scope ?? new [] {"email"};
         }
 
         private static string RetrieveAuthorizationCode(NameValueCollection queryStringParameters, string existingState = null)
