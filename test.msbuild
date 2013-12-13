@@ -1,1 +1,38 @@
-ÿþ
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+    ToolsVersion="4.0"
+    DefaultTargets="Build"
+    > 
+
+    <Import Project="$(MSBuildExtensionsPath64)\ExtensionPack\4.0\MSBuild.ExtensionPack.tasks"/>
+
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectToBuild Include=".\SimpleAuthentication.sln">
+            <Properties>OutputPath=$(MSBuildProjectDirectory)\output;Configuration=Release</Properties>
+        </ProjectToBuild>
+    </ItemGroup>
+
+    <Target Name="Build">
+
+        <Message Text="Building SimpleAuthentication" />
+        <MSBuild Projects="@(ProjectToBuild)" Targets="Build" />
+
+        <Message Text="Getting Build Number from Assembly File" />
+        <MSBuild.ExtensionPack.Framework.Assembly TaskAction="GetInfo" 
+            NetAssembly="$(MSBuildProjectDirectory)\output\SimpleAuthentication.Core.dll">
+            <Output TaskParameter="OutputItems" ItemName="Info"/>
+        </MSBuild.ExtensionPack.Framework.Assembly>
+
+        <Message Text="Build Number = %(Info.FileVersion)" />
+        <Message Text="Sending Build Number to Team City for use in Nuget" />
+
+        <Message Text="##teamcity[buildNumber '%(Info.FileVersion)']" />
+
+        <Message Text="Time to create nugets..."/>
+        
+    </Target>
+</Project>
